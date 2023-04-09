@@ -1,0 +1,60 @@
+Sub ParagraphMarkRemover()
+
+On Error GoTo ErrorHandler
+
+Dim a As Variant, b As Variant
+Dim i As Integer
+Dim selectedRange As Range
+
+' 確認ダイアログ停止（自動でYes）
+Application.DisplayAlerts = False
+
+' aは検索する文字列、bは置換後の文字列（aの1番目の文字列は、bの1番目の文字列に置換、aの2番めはbの2番目、以下Forループ）
+a = Array("^p")
+b = Array("")
+
+Set selectedRange = selection.Range
+
+For i = LBound(a) To UBound(a)
+    With selectedRange.Find
+        .text = a(i)
+        .Replacement.text = b(i)
+        .Forward = True
+        .Wrap = wdFindStop
+        .Format = False
+        .MatchCase = False
+        .MatchWholeWord = True
+        .MatchByte = True
+        .MatchAllWordForms = False
+        .MatchSoundsLike = False
+        .MatchWildcards = False
+        .MatchFuzzy = False
+    End With
+    Do While selectedRange.Find.Execute
+        selectedRange.text = b(i)
+        selectedRange.Collapse Direction:=wdCollapseEnd
+        If selectedRange.End >= selection.Range.End Then Exit Do
+    Loop
+Next i
+
+' 確認ダイアログ復活
+Application.DisplayAlerts = True
+
+' 完了通知メッセージ
+MsgBox Join(a, " :: ") & vbCrLf & _
+       vbCrLf & _
+       "を" & vbCrLf & _
+       vbCrLf & _
+       Join(b, " :: ") & vbCrLf & _
+       vbCrLf & _
+       "に置き換えました。", vbInformation, "完了"
+
+Exit Sub
+
+ErrorHandler:
+    MsgBox "エラーが発生しました。" & vbCrLf & _
+           "エラー番号：" & Err.Number & vbCrLf & _
+           "エラーの説明：" & Err.Description, _
+           vbCritical, "エラーメッセージ"
+
+End Sub
