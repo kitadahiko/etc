@@ -1,0 +1,63 @@
+Sub OCRSpellingHandler()
+
+On Error GoTo ErrorHandler
+
+Dim a As Variant, b As Variant
+Dim i As Integer
+
+' 確認ダイアログ停止（自動でYes）
+Application.DisplayAlerts = False
+
+' aは検索する文字列、bは置換後の文字列（aの1番目の文字列は、bの1番目の文字列に置換、aの2番めはbの2番目、以下Forループ）
+a = Array("(", ")", "､", "｡", "．", "･", " （", "） ", "、 ", "。 ", ". ", "l", "｢", "｣" _
+          , "x", "X'", "XI", "Xl", "X】", "y", "Y'", "YI", "Yl", "Y】", "z", "X.Y", "X.Z", "Y.Z" _
+          , "|司", "I司", "償権", "求債権", "訴求償権", "本間", "異識", "職成", "賠悩", "諦求", "誠求", "俄権" _
+          , "憤権", "偵権", "償務", "憤務", "備務", "偵務", ":", "1Q", "l", "Lz", "'" _
+          , "当郡者", "袖足", "椛", "保謹", "過言", "遡言", "柵", "椎", "櫛成", "記栽" _
+          )
+b = Array("（", "）", "、", "。", ".", ".", "（", "）", "、", "。", ".", "1", "「", "」" _
+          , "X", "X1", "X1", "X1", "X1", "Y", "Y1", "Y1", "Y1", "Y1", "Z", "X・Y", "X・Z", "Y・Z" _
+          , "同", "同", "債権", "求償権", "訴求債権", "本問", "異議", "構成", "賠償", "請求", "請求", "債権" _
+          , "債権", "債権", "債務", "債務", "債務", "債務", "：", "LQ", "1", "L2", "1" _
+          , "当事者", "補足", "権", "保護", "遺言", "遺言", "欄", "権", "構成", "記載" _
+          )
+
+For i = LBound(a) To UBound(a)
+    With selection.Find
+        .text = a(i)
+        .Replacement.text = b(i)
+        .Forward = True
+        .Wrap = wdFindAsk
+        .Format = False
+        .MatchCase = False
+        .MatchWholeWord = True
+        .MatchByte = True
+        .MatchAllWordForms = False
+        .MatchSoundsLike = False
+        .MatchWildcards = False
+        .MatchFuzzy = False
+    End With
+    selection.Find.Execute Replace:=wdReplaceAll
+Next i
+
+' 確認ダイアログ復活
+Application.DisplayAlerts = True
+
+' 完了通知メッセージ
+MsgBox Join(a, " :: ") & vbCrLf & _
+       vbCrLf & _
+       "を" & vbCrLf & _
+       vbCrLf & _
+       Join(b, " :: ") & vbCrLf & _
+       vbCrLf & _
+       "に置き換えました。", vbInformation, "完了"
+
+Exit Sub
+
+ErrorHandler:
+    MsgBox "エラーが発生しました。" & vbCrLf & _
+           "エラー番号：" & Err.Number & vbCrLf & _
+           "エラーの説明：" & Err.Description, _
+           vbCritical, "エラーメッセージ"
+
+End Sub
