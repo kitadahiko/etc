@@ -1,0 +1,55 @@
+Sub RemoveNumberAndSpaceAtParagraphBeginnings()
+' このVBAプログラムは、現在開いているWord文書の各パラグラフを順番に処理し、正規表現を使ってパラグラフの文頭にある数字+半角スペースを取り除くようになっています。
+' 正規表現パターン ^\d+\s は、行の先頭（^）に1つ以上の数字（\d+）とその後に半角スペース（\s）がある部分にマッチします。
+
+On Error GoTo ErrorHandler
+
+Dim MsgBoxResult As VbMsgBoxResult
+Dim doc As Document
+Dim para As Paragraph
+Dim regEx As Object
+
+' 確認ダイアログ
+MsgBoxResult = MsgBox( _
+    "このVBAプログラムは、現在開いているWord文書の各パラグラフを順番に処理し、正規表現(※)を使ってパラグラフの文頭にある数字+半角スペースを取り除くようになっています。実行しますか？" & vbCrLf & vbCrLf & _
+    "※正規表現パターン ^\d+\s ： 行の先頭（^）に1つ以上の数字（\d+）とその後に半角スペース（\s）がある部分にマッチ", _
+    vbOKCancel, _
+    "確認" _
+    )
+
+    ' キャンセル
+If MsgBoxResult = vbCancel Then
+    MsgBox "何もせず終了します。"
+    Exit Sub
+End If
+
+' 本番処理
+Set doc = ActiveDocument
+Set regEx = CreateObject("vbscript.regexp")
+
+' 文頭数字複数の後に半角スペース1つではなく、半角スペース又は全角スペース複数にするとき -> .Pattern = "^\d+[\s　]+"
+With regEx
+    .Pattern = "^\d+\s"
+    .Global = False
+    .IgnoreCase = True
+    .MultiLine = True
+End With
+
+For Each para In doc.Paragraphs
+    If regEx.Test(para.Range.text) Then
+        para.Range.text = regEx.Replace(para.Range.text, "")
+    End If
+Next para
+
+' 完了通知メッセージ
+MsgBox "完了しました。", vbInformation, "完了"
+
+Exit Sub
+
+ErrorHandler:
+    MsgBox "エラーが発生しました。" & vbCrLf & _
+           "エラー番号：" & Err.Number & vbCrLf & _
+           "エラーの説明：" & Err.Description, _
+           vbCritical, "エラーメッセージ"
+
+End Sub
