@@ -1,0 +1,84 @@
+Sub OCRSpellingHandler_EN()
+
+On Error GoTo ErrorHandler
+
+Dim MsgBoxResult As VbMsgBoxResult
+Dim a As Variant, b As Variant
+Dim i As Integer
+
+    ' aは検索する文字列、bは置換後の文字列（aの1番目の文字列は、bの1番目の文字列に置換、aの2番めはbの2番目、以下Forループ）
+    ' ParagraphMark→削除。ただし(1)直前に半角スペースのあるParagraphMark→改めてParagraphMark、(2)直前に。．のあるParagraphMarkと二連続ParagraphMark→残すように一括置換
+    a = Array(" ^p", "。^p", "｡^p", "．^p", ".^p", "」^p", "｣^p", "^p^p", "^p", _
+              " 「半角スペースP用目印」 ", " 「。P用目印」 ", " 「｡P用目印」 ", " 「．P用目印」 ", " 「.P用目印」 ", " 『」P用目印』 ", " 『｣P用目印』 ", " 「二連続P用目印」 ")
+    b = Array(" 「半角スペースP用目印」 ", " 「。P用目印」 ", " 「｡P用目印」 ", " 「．P用目印」 ", " 「.P用目印」 ", " 『」P用目印』 ", " 『｣P用目印』 ", " 「二連続P用目印」 ", "", _
+              "^p", "。^p", "｡^p", "．^p", ".^p", "」^p", "｣^p", "^p^p")
+
+' 確認ダイアログ停止（自動でYes）
+Application.DisplayAlerts = False
+
+' 置換
+For i = LBound(a) To UBound(a)
+    With selection.Find
+        .text = a(i)
+        .Replacement.text = b(i)
+        .Forward = True
+        .Wrap = wdFindAsk
+        .Format = False
+        .MatchCase = False
+        .MatchWholeWord = False
+        .MatchByte = True
+        .MatchAllWordForms = False
+        .MatchSoundsLike = False
+        .MatchWildcards = False
+        .MatchFuzzy = False
+    End With
+    selection.Find.Execute Replace:=wdReplaceAll
+Next i
+
+    ' aは検索する文字列、bは置換後の文字列（aの1番目の文字列は、bの1番目の文字列に置換、aの2番めはbの2番目、以下Forループ）
+    c = Array("、 ", "。 ", "Ⅱ", "Ⅲ", "''", "' ", " '", "!", "'" _
+              , " ", "　" _
+              , "，", ",", "．", "、", "｡", "(", ")", ":" _
+              , "|", " Id", " Ill", "ybu", "t0" _
+              , "please", "your", "their" _
+              )
+    d = Array("、", "。", "", "", "", "", "", "", "" _
+              , "", "" _
+              , ",", ", ", ".", "、", "。", "（", "）", "：" _
+              , "I", " I'd", " I'll", "you", "to" _
+              , "please ", "your ", "their " _
+              )
+
+' 置換
+For i = LBound(c) To UBound(d)
+    With selection.Find
+        .text = c(i)
+        .Replacement.text = d(i)
+        .Forward = True
+        .Wrap = wdFindAsk
+        .Format = False
+        .MatchCase = False
+        .MatchWholeWord = False
+        .MatchByte = True
+        .MatchAllWordForms = False
+        .MatchSoundsLike = False
+        .MatchWildcards = False
+        .MatchFuzzy = False
+    End With
+    selection.Find.Execute Replace:=wdReplaceAll
+Next i
+
+' 確認ダイアログ復活
+Application.DisplayAlerts = True
+
+MsgBox "置き換えました。", vbInformation, "完了"
+
+Exit Sub
+
+ErrorHandler:
+    MsgBox "エラーが発生しました。" & vbCrLf & _
+           "エラー番号：" & Err.Number & vbCrLf & _
+           "エラーの説明：" & Err.Description, _
+           vbCritical, "エラーメッセージ"
+
+End Sub
