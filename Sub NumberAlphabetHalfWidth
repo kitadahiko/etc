@@ -1,0 +1,62 @@
+Sub NumberAlphabetHalfWidth()
+
+On Error GoTo ErrorHandler
+
+Dim MsgBoxResult As VbMsgBoxResult
+Dim a As Variant, b As Variant
+Dim i As Long
+
+' ダイアログによる処理の選択
+MsgBoxResult = MsgBox( _
+    "数字とアルファベットを全角から半角に置き換えます。よろしいですか。（※選択範囲を処理します。選択範囲の指定がなければカーソル位置以降の範囲を処理します。）", _
+    vbOKCancel, _
+    "確認" _
+    )
+
+' 選択に応じた処理の分岐
+If MsgBoxResult = vbCancel Then
+    MsgBox "何もせず終了します。"
+    Exit Sub
+Else
+    ' aは検索する文字列、bは置換後の文字列（aの1番目の文字列は、bの1番目の文字列に置換、aの2番めはbの2番目、以下Forループ）
+    ' ParagraphMark→削除。ただし(1)直前に半角スペースのあるParagraphMark→改めてParagraphMark、(2)直前に。．のあるParagraphMarkと二連続ParagraphMark→残すように一括置換
+    a = Array("０", "１", "２", "３", "４", "５", "６", "７", "８", "９", "Ａ", "Ｂ", "Ｃ", "Ｄ", "Ｅ", "Ｆ", "Ｇ", "Ｈ", "Ｉ", "Ｊ", "Ｋ", "Ｌ", "Ｍ", "Ｎ", "Ｏ", "Ｐ", "Ｑ", "Ｒ", "Ｓ", "Ｔ", "Ｕ", "Ｖ", "Ｗ", "Ｘ", "Ｙ", "Ｚ")
+    b = Array("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
+End If
+
+' 確認ダイアログ停止（自動でYes）
+Application.DisplayAlerts = False
+
+' 置換
+For i = LBound(a) To UBound(a)
+    With selection.Find
+        .text = a(i)
+        .Replacement.text = b(i)
+        .Forward = True
+        .Wrap = wdFindStop
+        .Format = False
+        .MatchCase = False
+        .MatchWholeWord = True
+        .MatchByte = True
+        .MatchAllWordForms = False
+        .MatchSoundsLike = False
+        .MatchWildcards = False
+        .MatchFuzzy = False
+    End With
+    selection.Find.Execute Replace:=wdReplaceAll
+Next i
+
+' 確認ダイアログ復活
+Application.DisplayAlerts = True
+
+MsgBox "置き換えました。", vbInformation, "完了"
+
+Exit Sub
+
+ErrorHandler:
+    MsgBox "エラーが発生しました。" & vbCrLf & _
+           "エラー番号：" & Err.Number & vbCrLf & _
+           "エラーの説明：" & Err.Description, _
+           vbCritical, "エラーメッセージ"
+
+End Sub
