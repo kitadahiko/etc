@@ -1,0 +1,107 @@
+Sub ChangeParenthesesTextColor()
+'
+' 全角丸かっこで囲まれた文字に色を付ける関数（半角丸かっこには反応しない）
+' １文字ずつ色を付けているため処理が遅い　→アルゴリズム要改善
+'
+
+On Error GoTo ErrorHandler
+
+Dim MsgBoxResult As VbMsgBoxResult
+Dim oRange As Range
+Dim oChar As Range
+Dim parenthesesLevel As Integer
+Dim firstColor As Long
+Dim secondColor As Long
+Dim i As Integer
+Dim p_ranges As New Collection
+
+' ダイアログによる処理の選択
+MsgBoxResult = MsgBox( _
+    "全角丸かっこ内の文字色を変更します。よろしいですか。" & vbCrLf & _
+    vbCrLf & _
+    "・選択範囲を処理します。" & vbCrLf & _
+    "・半角丸かっこは処理しません。" & vbCrLf & _
+    "　丸かっこのペアに半角丸かっこが混じっていると意図した挙動になりません。" & vbCrLf & _
+    "・１文字ずつ処理するため文字量が多いと時間がかかります。（要改善）" & vbCrLf & _
+    "　ステータスバー（通常左下）に表示される進捗(％)から処理状況を確認できます。", _
+    vbOKCancel, _
+    "確認" _
+    )
+
+' CancelのときはExit
+If MsgBoxResult = vbCancel Then
+    MsgBox "何もせず終了します。", vbInformation
+    Exit Sub
+End If
+
+' 選択範囲がなければExit
+If selection.Range.text = "" Then
+    MsgBox "テキストが選択されていません。何もせず終了します。", vbInformation
+    Exit Sub
+End If
+
+' 色を指定
+firstColor = RGB(128, 128, 128)  ' 50% 灰色
+secondColor = RGB(112, 173, 71)  ' わずかに濃い緑
+
+' 選択範囲を設定
+Set oRange = selection.Range
+
+' 画面更新を停止（ステータスバーの更新時に画面のちらつきを防ぐ）
+Application.ScreenUpdating = False
+
+' 選択範囲内の各文字について処理
+For i = 1 To oRange.Characters.Count
+    ' ステータスバーを更新（処理が遅いときの気休めに）
+    Application.StatusBar = "進捗: " & Format((i / oRange.Characters.Count), "0%")
+        
+    ' 各文字の位置を格納
+    Set oChar = oRange.Characters(i)
+        
+    ' 各文字が何かにより場合分け
+    Select Case oChar.text
+        ' 全角開始丸かっこの場合
+        Case "（"
+            parenthesesLevel = parenthesesLevel + 1  ' 現在の丸かっこレベルを+1
+            If parenthesesLevel = 1 Then
+                oChar.Font.Color = firstColor ' 開始括弧をfirstColorに設定
+            ElseIf parenthesesLevel > 1 Then
+                oChar.Font.Color = secondColor ' 開始括弧をsecondColorに設定
+            End If
+            
+        ' 全角終了丸かっこの場合
+        Case "）"
+            If parenthesesLevel = 1 Then
+                oChar.Font.Color = firstColor ' 終了括弧をfirstColorに設定
+            ElseIf parenthesesLevel > 1 Then
+                oChar.Font.Color = secondColor ' 終了括弧をsecondColorに設定
+            End If
+            parenthesesLevel = parenthesesLevel - 1  ' 現在の丸かっこレベルを-1
+           
+        ' 上記以外の場合
+        Case Else
+            ' 括弧の中にある場合のみ色を変更
+            If parenthesesLevel = 1 Then
+                oChar.Font.Color = firstColor
+            ElseIf parenthesesLevel > 1 Then
+                oChar.Font.Color = secondColor
+            End If
+    End Select
+Next i
+
+' ステータスバーと画面更新を元に戻す
+Application.StatusBar = False
+Application.ScreenUpdating = True
+
+' 完了メッセージ
+MsgBox "完了しました。", vbInformation
+
+Exit Sub
+
+ErrorHandler:
+    MsgBox "エラーが発生しました。" & vbCrLf & _
+           "エラー番号：" & Err.Number & vbCrLf & _
+           "エラーの説明：" & Err.Description, _
+           vbCritical, "エラーメッセージ"
+           
+End Sub
